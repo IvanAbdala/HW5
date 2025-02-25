@@ -1,0 +1,82 @@
+---
+title: "Homework lubridate and purrr Ivan Abdala"
+format: html
+editor: visual
+---
+
+```{r}
+library(lubridate)
+library(purrr)
+```
+
+## **Exercise 1: Advanced Date Manipulation with lubridate**
+
+```{r}
+# Generating the sequence of dates
+DateSeq <- seq(ymd("2015-01-01"), ymd("2025-12-31"), by = "2 months")
+
+# Extracting the year, quarter, and ISO week
+DateInfo <- data.frame(
+  Date = DateSeq,
+  Year = year(DateSeq),
+  Quarter = quarter(DateSeq),
+  ISOWeek = isoweek(DateSeq)
+)
+
+head(DateInfo)
+```
+
+## **Exercise 2: Complex Date Arithmetic**
+
+```{r}
+SampleDates <- ymd(c("2018-03-15", "2020-07-20", "2023-01-10", "2025-09-05"))
+
+#Differences
+MonthDiff <- map2_dbl(SampleDates[-length(SampleDates)], SampleDates[-1], ~ interval(.x, .y) / months(1))
+WeekDiff <- map2_dbl(SampleDates[-length(SampleDates)], SampleDates[-1], ~ interval(.x, .y) / weeks(1))
+
+#results
+DateDiffDF <- data.frame(
+  StartDate = SampleDates[-length(SampleDates)],
+  EndDate = SampleDates[-1],
+  MonthsDiff = MonthDiff,
+  WeeksDiff = WeekDiff
+)
+
+print(DateDiffDF)
+```
+
+## **Exercise 3: Higher-Order Functions with purrr**
+
+```{r}
+NumLists <- list(c(4, 16, 25, 36, 49),c(2.3, 5.7, 8.1, 11.4),c(10, 20, 30, 40, 50))
+
+#statistics
+StatsDF <- data.frame(
+  Mean = map_dbl(NumLists, mean),
+  Median = map_dbl(NumLists, median),
+  StdDev = map_dbl(NumLists, sd)
+)
+print(StatsDF)
+```
+
+## **Exercise 4: Combining lubridate and purrr**
+
+```{r}
+DateStrings <- list("2023-06-10", "2022/12/25", "15-Aug-2021", "InvalidDate")
+
+# conversion
+SafeParseDate <- possibly(~ as.Date(.x, tryFormats = c("%Y-%m-%d", "%Y/%m/%d", "%d-%b-%Y")), otherwise = NA)
+ConvertedDates <- map(DateStrings, SafeParseDate)
+
+# extracting month names
+MonthNames <- map_chr(ConvertedDates, ~ ifelse(is.na(.x), "Invalid", month(.x, label = TRUE, abbr = FALSE)))
+
+#results
+DateConversionDF <- data.frame(
+  OriginalString = DateStrings,
+  ConvertedDate = ConvertedDates,
+  MonthName = MonthNames
+)
+print(DateConversionDF)
+```
